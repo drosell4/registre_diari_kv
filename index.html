@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre diari</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(160deg, #e8f4f0 0%, #f0eafa 100%);
+    color: #1a1a18;
+    min-height: 100vh;
+    padding: 1.5rem 1rem 3rem;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem 1rem 1rem;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #2d2060;
+    margin-bottom: 4px;
+  }
+  .header p {
+    font-size: 13px;
+    color: #7a6eaa;
+  }
+  .card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 2px 12px rgba(100,80,180,0.07);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9b8ec4;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 10px;
+  }
+  .time-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .time-field label {
+    display: block;
+    font-size: 13px;
+    color: #5f5e5a;
+    margin-bottom: 6px;
+  }
+  .time-field input[type="time"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e0d9f5;
+    border-radius: 10px;
+    font-size: 15px;
+    background: #f7f4fe;
+    color: #2d2060;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .time-field input[type="time"]:focus {
+    border-color: #7c5fcf;
+    box-shadow: 0 0 0 3px rgba(124,95,207,0.15);
+  }
+
+  /* Opcional accordion */
+  .opcional-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    padding: 0;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+  }
+  .opcional-toggle .badge {
+    font-size: 10px;
+    font-weight: 600;
+    background: #ede8fb;
+    color: #7c5fcf;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .opcional-toggle .toggle-label {
+    font-size: 14px;
+    color: #3d3060;
+    flex: 1;
+  }
+  .opcional-toggle .arrow {
+    font-size: 16px;
+    color: #b0a4d8;
+    transition: transform 0.2s;
+  }
+  .opcional-toggle.open .arrow {
+    transform: rotate(180deg);
+  }
+  .opcional-content {
+    display: none;
+    margin-top: 12px;
+  }
+  .opcional-content.open {
+    display: block;
+  }
+
+  /* Medicació */
+  .med-item {
+    padding: 12px 0;
+    border-bottom: 0.5px solid #f1efe8;
+  }
+  .med-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .med-item:first-child { padding-top: 0; }
+  .med-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .med-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d2060;
+    flex: 1;
+  }
+  .check-group {
+    display: flex;
+    gap: 8px;
+  }
+  .check-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid #e0d9f5;
+    font-size: 13px;
+    cursor: pointer;
+    background: #f7f4fe;
+    color: #7c5fcf;
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+  .check-btn.selected-si {
+    background: #eaf3de;
+    border-color: #7ab840;
+    color: #3b6d11;
+    font-weight: 600;
+  }
+  .check-btn.selected-no {
+    background: #fcebeb;
+    border-color: #e88;
+    color: #a32d2d;
+    font-weight: 600;
+  }
+  textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e0d9f5;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #f7f4fe;
+    color: #2d2060;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    line-height: 1.5;
+  }
+  textarea:focus {
+    border-color: #7c5fcf;
+    box-shadow: 0 0 0 3px rgba(124,95,207,0.15);
+  }
+  textarea::placeholder { color: #c0b8e0; }
+
+  /* Consum */
+  .consum-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .consum-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1.5px solid #e0d9f5;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #f7f4fe;
+    color: #7c5fcf;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .consum-btn.selected-si {
+    background: #fcebeb;
+    border-color: #e88;
+    color: #a32d2d;
+  }
+  .consum-btn.selected-no {
+    background: #eaf3de;
+    border-color: #7ab840;
+    color: #3b6d11;
+  }
+  .consum-details {
+    display: none;
+    margin-top: 12px;
+  }
+  .consum-details.visible { display: block; }
+  .field-label {
+    font-size: 13px;
+    color: #7a6eaa;
+    margin-bottom: 6px;
+    margin-top: 14px;
+    display: block;
+  }
+  .field-label:first-child { margin-top: 0; }
+
+  /* Som */
+  .son-scale {
+    display: flex;
+    gap: 5px;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+  .son-num-btn {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: 1.5px solid #e0d9f5;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #f7f4fe;
+    color: #7c5fcf;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .son-num-btn.selected {
+    border-color: #7c5fcf;
+    background: #ede8fb;
+    color: #2d2060;
+    transform: scale(1.08);
+  }
+  .som-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #b4b2a9;
+    margin-top: 4px;
+    padding: 0 2px;
+  }
+
+  /* Enviar */
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #7c5fcf, #4e9e8a);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.02em;
+  }
+  .submit-btn:hover { opacity: 0.92; }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .success-msg {
+    display: none;
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  .success-msg .icon { font-size: 48px; margin-bottom: 12px; }
+  .success-msg h2 { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
+  .success-msg p { font-size: 14px; color: #888780; }
+  .error-msg {
+    display: none;
+    background: #fcebeb;
+    border: 0.5px solid #f09595;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 13px;
+    color: #a32d2d;
+    margin-top: 10px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div id="form-container">
+  <div class="header">
+    <h1>Com ha anat el dia?</h1>
+    <p id="data-avui"></p>
+  </div>
+
+  <!-- 1 & 2: Hores -->
+  <div class="card">
+    <div class="card-label">Horaris</div>
+    <div class="time-row">
+      <div class="time-field">
+        <label for="hora_llevar">M'he llevat a les</label>
+        <input type="time" id="hora_llevar" name="hora_llevar">
+      </div>
+      <div class="time-field">
+        <label for="hora_dormir">Ahir vaig dormir a les</label>
+        <input type="time" id="hora_dormir" name="hora_dormir">
+      </div>
+    </div>
+  </div>
+
+  <!-- 3: Opcional - Com has dormit -->
+  <div class="card">
+    <button class="opcional-toggle" onclick="toggleOpcional('son')" id="toggle-son">
+      <span class="badge">Opcional</span>
+      <span class="toggle-label">Com has dormit?</span>
+      <span class="arrow">⌄</span>
+    </button>
+    <div class="opcional-content" id="content-son">
+      <div class="son-scale">
+        <button class="son-num-btn" onclick="selectSon(1, this)">1</button>
+        <button class="son-num-btn" onclick="selectSon(2, this)">2</button>
+        <button class="son-num-btn" onclick="selectSon(3, this)">3</button>
+        <button class="son-num-btn" onclick="selectSon(4, this)">4</button>
+        <button class="son-num-btn" onclick="selectSon(5, this)">5</button>
+        <button class="son-num-btn" onclick="selectSon(6, this)">6</button>
+        <button class="son-num-btn" onclick="selectSon(7, this)">7</button>
+        <button class="son-num-btn" onclick="selectSon(8, this)">8</button>
+        <button class="son-num-btn" onclick="selectSon(9, this)">9</button>
+        <button class="son-num-btn" onclick="selectSon(10, this)">10</button>
+      </div>
+      <div class="som-label"><span>Molt malament</span><span>Molt bé</span></div>
+      <input type="hidden" id="com_dormit" value="">
+      <label class="field-label" style="margin-top:10px;">Vols afegir alguna cosa?</label>
+      <textarea id="son_notes" placeholder="Per exemple: he pres medicació per dormir, he fet esport, he meditat, no he pres res..."></textarea>
+    </div>
+  </div>
+
+  <!-- 4: Medicació -->
+  <div class="card">
+    <div class="card-label">Medicació</div>
+    <div class="med-item">
+      <div class="med-header">
+        <span class="med-name">Selincro</span>
+        <div class="check-group">
+          <button class="check-btn" onclick="selectMed('selincro', 'si', this)">Sí</button>
+          <button class="check-btn" onclick="selectMed('selincro', 'no', this)">No</button>
+        </div>
+      </div>
+      <input type="hidden" id="selincro" value="">
+      <textarea id="selincro_notes" placeholder="Notes (opcional)..." style="min-height:60px;"></textarea>
+    </div>
+    <div class="med-item">
+      <div class="med-header">
+        <span class="med-name">Zyprexa</span>
+        <div class="check-group">
+          <button class="check-btn" onclick="selectMed('zyprexa', 'si', this)">Sí</button>
+          <button class="check-btn" onclick="selectMed('zyprexa', 'no', this)">No</button>
+        </div>
+      </div>
+      <input type="hidden" id="zyprexa" value="">
+      <div class="zyprexa-tipus" id="zyprexa-tipus" style="display:none; margin-bottom:8px;">
+        <div style="font-size:12px; color:#888780; margin-bottom:6px;">Quan l'has pres? (pots marcar més d'una)</div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+          <button class="check-btn zyp-opt" data-opt="mati" onclick="toggleZypOpt('mati', this)">¼ matí</button>
+          <button class="check-btn zyp-opt" data-opt="migdia" onclick="toggleZypOpt('migdia', this)">¼ migdia</button>
+          <button class="check-btn zyp-opt" data-opt="nit" onclick="toggleZypOpt('nit', this)">¼ nit</button>
+          <button class="check-btn zyp-opt" data-opt="rescat" onclick="toggleZypOpt('rescat', this)">Rescat</button>
+        </div>
+        <div id="zyprexa-rescat-motiu" style="display:none;">
+          <label class="field-label" style="margin-top:0; margin-bottom:6px;">Motiu del rescat</label>
+          <textarea id="zyprexa_rescat_motiu" placeholder="Per quin motiu has hagut de prendre el rescat?" style="min-height:60px;"></textarea>
+        </div>
+        <input type="hidden" id="zyprexa_tipus" value="">
+      </div>
+      <textarea id="zyprexa_notes" placeholder="Notes (opcional)..." style="min-height:60px;"></textarea>
+    </div>
+  </div>
+
+  <!-- 5: Consum -->
+  <div class="card">
+    <div class="card-label">Consum</div>
+    <div class="consum-row">
+      <button class="consum-btn" onclick="selectConsum('si', this)">Sí he consumit</button>
+      <button class="consum-btn" onclick="selectConsum('no', this)">No he consumit</button>
+    </div>
+    <input type="hidden" id="consum" value="">
+
+    <!-- Si ha consumit -->
+    <div class="consum-details" id="details-si">
+      <label class="field-label">Quin ha estat el motiu o el desencadenant?</label>
+      <textarea id="motiu_consum" placeholder="Escriu aquí..."></textarea>
+      <label class="field-label">Com t'has sentit amb el consum?</label>
+      <textarea id="sentiment_consum" placeholder="Escriu aquí..."></textarea>
+    </div>
+
+    <!-- Si no ha consumit -->
+    <div class="consum-details" id="details-no">
+      <label class="field-label">Què t'ha ajudat a no consumir?</label>
+      <textarea id="que_ha_ajudat" placeholder="Escriu aquí..."></textarea>
+    </div>
+  </div>
+
+  <!-- 8: Decisió -->
+  <div class="card">
+    <div class="card-label">Decisió del dia</div>
+    <textarea id="decisio" placeholder="Quina petita decisió significativa has pres avui?"></textarea>
+  </div>
+
+  <!-- 9: Opcional - Com t'has sentit -->
+  <div class="card">
+    <button class="opcional-toggle" onclick="toggleOpcional('dia')" id="toggle-dia">
+      <span class="badge">Opcional</span>
+      <span class="toggle-label">Com t'has sentit al llarg del dia?</span>
+      <span class="arrow">⌄</span>
+    </button>
+    <div class="opcional-content" id="content-dia">
+      <textarea id="sentiment_dia" placeholder="Com t'has sentit i per quin motiu?"></textarea>
+    </div>
+  </div>
+
+  <!-- 11: Opcional - Activitat -->
+  <div class="card">
+    <button class="opcional-toggle" onclick="toggleOpcional('activitat')" id="toggle-activitat">
+      <span class="badge">Opcional</span>
+      <span class="toggle-label">Activitat que t'ha connectat amb tu mateixa</span>
+      <span class="arrow">⌄</span>
+    </button>
+    <div class="opcional-content" id="content-activitat">
+      <textarea id="activitat" placeholder="Animals, hort, hípica... el que sigui que t'ha fet bé."></textarea>
+    </div>
+  </div>
+
+  <!-- Extra opcional -->
+  <div class="card">
+    <button class="opcional-toggle" onclick="toggleOpcional('extra')" id="toggle-extra">
+      <span class="badge">Opcional</span>
+      <span class="toggle-label">Vols afegir alguna cosa més?</span>
+      <span class="arrow">⌄</span>
+    </button>
+    <div class="opcional-content" id="content-extra">
+      <textarea id="extra" placeholder="Qualsevol cosa que vulguis compartir sobre com ha anat el dia..."></textarea>
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="enviarRegistre()" id="btn-enviar">Enviar registre</button>
+  <div class="error-msg" id="error-msg">Hi ha hagut un problema en enviar. Torna-ho a intentar.</div>
+</div>
+
+<div class="success-msg" id="success-msg">
+  <div class="icon">✓</div>
+  <h2>Registre enviat!</h2>
+  <p>Gràcies per completar el registre d'avui.</p>
+</div>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4Ok26co6MxomDIKPI1tL3D8VLSl4i-NEkEEVGPGAAOLzi9-ChL87Zgy2uy2rcULS1/exec';
+
+  const dies = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+  const mesos = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+  const ara = new Date();
+  document.getElementById('data-avui').textContent = dies[ara.getDay()] + ', ' + ara.getDate() + ' de ' + mesos[ara.getMonth()] + ' de ' + ara.getFullYear();
+
+  function toggleOpcional(id) {
+    const toggle = document.getElementById('toggle-' + id);
+    const content = document.getElementById('content-' + id);
+    toggle.classList.toggle('open');
+    content.classList.toggle('open');
+  }
+
+  function selectSon(val, btn) {
+    document.querySelectorAll('.son-num-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('com_dormit').value = val;
+  }
+
+  function selectMed(med, val, btn) {
+    const group = btn.closest('.check-group');
+    group.querySelectorAll('.check-btn').forEach(b => b.classList.remove('selected-si','selected-no'));
+    btn.classList.add(val === 'si' ? 'selected-si' : 'selected-no');
+    document.getElementById(med).value = val;
+    if (med === 'zyprexa') {
+      const tipusDiv = document.getElementById('zyprexa-tipus');
+      tipusDiv.style.display = val === 'si' ? 'block' : 'none';
+      if (val === 'no') {
+        zypOpts.clear();
+        document.getElementById('zyprexa_tipus').value = '';
+        document.getElementById('zyprexa_rescat_motiu').value = '';
+        document.getElementById('zyprexa-rescat-motiu').style.display = 'none';
+        tipusDiv.querySelectorAll('.zyp-opt').forEach(b => b.classList.remove('selected-si'));
+      }
+    }
+  }
+
+  const zypOpts = new Set();
+  function toggleZypOpt(val, btn) {
+    if (zypOpts.has(val)) {
+      zypOpts.delete(val);
+      btn.classList.remove('selected-si');
+    } else {
+      zypOpts.add(val);
+      btn.classList.add('selected-si');
+    }
+    document.getElementById('zyprexa_tipus').value = Array.from(zypOpts).join(', ');
+    document.getElementById('zyprexa-rescat-motiu').style.display = zypOpts.has('rescat') ? 'block' : 'none';
+  }
+
+  function selectConsum(val, btn) {
+    document.querySelectorAll('.consum-btn').forEach(b => b.classList.remove('selected-si','selected-no'));
+    btn.classList.add(val === 'si' ? 'selected-si' : 'selected-no');
+    document.getElementById('consum').value = val;
+    document.getElementById('details-si').classList.toggle('visible', val === 'si');
+    document.getElementById('details-no').classList.toggle('visible', val === 'no');
+  }
+
+  async function enviarRegistre() {
+    const btn = document.getElementById('btn-enviar');
+    const errMsg = document.getElementById('error-msg');
+    btn.disabled = true;
+    btn.textContent = 'Enviant...';
+    errMsg.style.display = 'none';
+
+    const data = {
+      hora_llevar: document.getElementById('hora_llevar').value || '',
+      hora_dormir: document.getElementById('hora_dormir').value || '',
+      com_dormit: document.getElementById('com_dormit').value + (document.getElementById('son_notes').value ? ' — ' + document.getElementById('son_notes').value : ''),
+      selincro: document.getElementById('selincro').value || '',
+      selincro_notes: document.getElementById('selincro_notes').value || '',
+      zyprexa: document.getElementById('zyprexa').value || '',
+      zyprexa_tipus: document.getElementById('zyprexa_tipus').value || '',
+      zyprexa_rescat_motiu: document.getElementById('zyprexa_rescat_motiu').value || '',
+      zyprexa_notes: document.getElementById('zyprexa_notes').value || '',
+      consum: document.getElementById('consum').value || '',
+      motiu_consum: document.getElementById('motiu_consum').value || '',
+      sentiment_consum: document.getElementById('sentiment_consum').value || '',
+      que_ha_ajudat: document.getElementById('que_ha_ajudat').value || '',
+      decisio: document.getElementById('decisio').value || '',
+      sentiment_dia: document.getElementById('sentiment_dia').value || '',
+      activitat: document.getElementById('activitat').value || '',
+      extra: document.getElementById('extra').value || ''
+    };
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      document.getElementById('form-container').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Enviar registre';
+      errMsg.style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>
